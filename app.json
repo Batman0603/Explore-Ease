@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "ExploreEase",
+    "slug": "exploreease",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/cafa5a55-8fc2-4222-8e7f-6aa282faa0ac.jpg",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/cafa5a55-8fc2-4222-8e7f-6aa282faa0ac.jpg"
+    },
+    "plugins": ["expo-router", "expo-font", "expo-web-browser", "expo-location"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "permissions": [
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.ACCESS_FINE_LOCATION"
+    ]
+  }
+}
