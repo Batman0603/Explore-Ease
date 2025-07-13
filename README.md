@@ -2,6 +2,8 @@
 
 **ExploreEase** is a smart location discovery and navigation platform built using **Bolt AI** and **Supabase**. Designed to enhance travel, tourism, and city exploration, it helps users discover points of interest, routes, and utilities using real-time and AI-enhanced recommendations.
 
+🔗 **Live Demo**: [https://explore-ease-mlc6.vercel.app](https://explore-ease-mlc6.vercel.app)
+
 ---
 
 ## 🚀 Features
@@ -106,6 +108,8 @@ npx expo export:web
 
 That’s it — your ExploreEase app is live!
 
+🔗 **Visit App**: [https://explore-ease-mlc6.vercel.app](https://explore-ease-mlc6.vercel.app)
+
 ---
 
 ## 🙌 Contributing
@@ -116,4 +120,4 @@ PRs, issues, and suggestions are welcome! Open an issue or start a discussion.
 
 ## 📄 License
 
-MIT License © 2025 [Your Name]
+MIT License © 2025 Batman0603
