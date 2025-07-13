@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "set EXPO_NO_TELEMETRY=1 && npx expo start",
-    "build": "npx expo export --platform web",
+    "build": "npx expo export --platform web --output-dir web-build",
     "lint": "expo lint"
   },
   "dependencies": {
