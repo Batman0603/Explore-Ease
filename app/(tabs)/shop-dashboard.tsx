@@ -12,22 +12,26 @@ import {
 import { router } from 'expo-router';
 import { Store, Plus, ChartBar as BarChart3, Users, Star, MapPin, CreditCard as Edit, Eye } from 'lucide-react-native';
 import { useColors } from '@/hooks/useColors';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { User, Shop } from '@/types';
-import { mockShops } from '@/constants/mockData';
 
 export default function ShopDashboard() {
   const colors = useColors();
   const [user, setUser] = useState<User | null>(null);
-  const [shops, setShops] = useState<Shop[]>([]);
+  const [places, setPlaces] = useState<any[]>([]);
 
   useEffect(() => {
     loadUser();
-    loadShops();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      loadUserPlaces();
+    }
+  }, [user]);
+
   const loadUser = async () => {
-    const currentUser = await authService.getCurrentUser();
+    const currentUser = await databaseService.getCurrentUser();
     if (!currentUser || currentUser.type !== 'shop_owner') {
       Alert.alert(
         'Access Denied',
@@ -39,17 +43,22 @@ export default function ShopDashboard() {
     setUser(currentUser);
   };
 
-  const loadShops = () => {
-    // Filter shops owned by current user
-    const userShops = mockShops.filter(shop => shop.ownerId === 'owner1');
-    setShops(userShops);
+  const loadUserPlaces = async () => {
+    if (!user) return;
+    
+    try {
+      const userPlaces = await databaseService.getPlacesByOwner(user.id);
+      setPlaces(userPlaces);
+    } catch (error) {
+      console.error('Error loading places:', error);
+    }
   };
 
   const stats = [
     {
       icon: Store,
       title: 'Active Shops',
-      value: shops.length.toString(),
+      value: places.length.toString(),
       color: colors.primary,
     },
     {
@@ -115,7 +124,7 @@ export default function ShopDashboard() {
             </TouchableOpacity>
           </View>
 
-          {shops.length === 0 ? (
+          {places.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.surface }]}>
               <Store size={48} color={colors.textTertiary} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>No shops yet</Text>
@@ -128,12 +137,12 @@ export default function ShopDashboard() {
             </View>
           ) : (
             <View style={styles.shopsContainer}>
-              {shops.map((shop) => (
-                <View key={shop.id} style={[styles.shopCard, { backgroundColor: colors.surface }]}>
-                  <Image source={{ uri: shop.image }} style={styles.shopImage} />
+              {places.map((place) => (
+                <View key={place.id} style={[styles.shopCard, { backgroundColor: colors.surface }]}>
+                  <Image source={{ uri: place.image }} style={styles.shopImage} />
                   <View style={[styles.shopContent, { backgroundColor: colors.surface }]}>
                     <View style={styles.shopHeader}>
-                      <Text style={[styles.shopName, { color: colors.text }]}>{shop.name}</Text>
+                      <Text style={[styles.shopName, { color: colors.text }]}>{place.name}</Text>
                       <View style={styles.shopActions}>
                         <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.surfaceSecondary }]}>
                           <Eye size={16} color={colors.textSecondary} />
@@ -143,19 +152,19 @@ export default function ShopDashboard() {
                         </TouchableOpacity>
                       </View>
                     </View>
-                    <Text style={[styles.shopCategory, { color: colors.primary }]}>{shop.category}</Text>
+                    <Text style={[styles.shopCategory, { color: colors.primary }]}>{place.category}</Text>
                     <Text style={[styles.shopDescription, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {shop.description}
+                      {place.description}
                     </Text>
                     <View style={styles.shopFooter}>
                       <View style={styles.shopRating}>
                         <Star size={14} color={colors.warning} />
-                        <Text style={[styles.ratingText, { color: colors.text }]}>{shop.rating}</Text>
+                        <Text style={[styles.ratingText, { color: colors.text }]}>{place.rating || 4.5}</Text>
                       </View>
                       <View style={styles.shopLocation}>
                         <MapPin size={14} color={colors.textTertiary} />
                         <Text style={[styles.locationText, { color: colors.textTertiary }]} numberOfLines={1}>
-                          {shop.address}
+                          {place.address}
                         </Text>
                       </View>
                     </View>

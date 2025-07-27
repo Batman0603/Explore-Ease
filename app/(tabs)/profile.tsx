@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import { User as UserIcon, Settings, Heart, MapPin, Bell, CircleHelp as HelpCircle, LogOut, CreditCard as Edit, Palette } from 'lucide-react-native';
 import { useColors } from '@/hooks/useColors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { User } from '@/types';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -26,7 +26,7 @@ export default function Profile() {
   }, []);
 
   const loadUser = async () => {
-    const currentUser = await authService.getCurrentUser();
+    const currentUser = await databaseService.getCurrentUser();
     setUser(currentUser);
   };
 
@@ -41,7 +41,7 @@ export default function Profile() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await authService.logout();
+              await databaseService.signOut();
             } catch (error) {
               console.error('Logout error:', error);
             }

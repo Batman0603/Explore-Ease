@@ -1,61 +1,97 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './supabase';
 import { User } from '@/types';
-
-const AUTH_KEY = 'exploreease_auth';
 
 export const authService = {
   async login(email: string, password: string, userType: 'customer' | 'shop_owner'): Promise<User> {
-    // Simulate API call with validation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simple validation for demo purposes
-    if (!email.includes('@') || password.length < 6) {
-      throw new Error('Invalid credentials');
-    }
-    
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      name: email.split('@')[0],
-      type: userType,
-      avatar: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg'
+      password,
+    });
+
+    if (error) throw error;
+
+    if (!data.user) throw new Error('Login failed');
+
+    // Get user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error('User profile not found');
+    }
+
+    // Verify user type matches
+    if (profile.user_type !== userType) {
+      throw new Error(`Invalid user type. Expected ${userType}, got ${profile.user_type}`);
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      type: profile.user_type,
+      avatar: profile.avatar_url,
     };
-    
-    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    return user;
   },
 
   async register(email: string, password: string, name: string, userType: 'customer' | 'shop_owner'): Promise<User> {
-    // Simulate API call with validation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simple validation for demo purposes
-    if (!email.includes('@') || password.length < 8 || name.length < 2) {
-      throw new Error('Invalid registration data');
-    }
-    
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    if (!data.user) throw new Error('Registration failed');
+
+    // Create profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: data.user.id,
+        email,
+        name,
+        user_type: userType,
+      });
+
+    if (profileError) throw profileError;
+
+    return {
+      id: data.user.id,
       email,
       name,
       type: userType,
-      avatar: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg'
+      avatar: null,
     };
-    
-    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    return user;
   },
 
   async getCurrentUser(): Promise<User | null> {
-    try {
-      const userData = await AsyncStorage.getItem(AUTH_KEY);
-      return userData ? JSON.parse(userData) : null;
-    } catch {
-      return null;
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return null;
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) return null;
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      type: profile.user_type,
+      avatar: profile.avatar_url,
+    };
   },
 
   async logout(): Promise<void> {
-    await AsyncStorage.removeItem(AUTH_KEY);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }
 };

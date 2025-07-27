@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { Colors } from '@/constants/Colors';
 
 export default function Register() {
@@ -54,14 +54,22 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const user = await authService.register(email, password, name, type || 'customer');
+      const authData = await databaseService.signUp(email, password, name, type || 'customer');
+      
+      if (!authData.user) {
+        throw new Error('Registration failed');
+      }
+      
+      const currentUser = await databaseService.getCurrentUser();
+      if (!currentUser) throw new Error('Failed to create user profile');
+      
       if (user.type === 'customer') {
         router.replace('/(tabs)');
       } else {
         router.replace('/(tabs)/shop-dashboard');
       }
     } catch (error) {
-      Alert.alert('Error', 'Registration failed. Please try again.');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Chrome as Home, Map, User, Store, QrCode } from 'lucide-react-native';
 import { useColors } from '@/hooks/useColors';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { User as UserType } from '@/types';
 
 export default function TabLayout() {
@@ -14,7 +14,7 @@ export default function TabLayout() {
   }, []);
 
   const loadUser = async () => {
-    const currentUser = await authService.getCurrentUser();
+    const currentUser = await databaseService.getCurrentUser();
     setUser(currentUser);
   };
 

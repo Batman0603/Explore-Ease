@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { Colors } from '@/constants/Colors';
 
 export default function Login() {
@@ -41,14 +41,23 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const user = await authService.login(email, password, type || 'customer');
+      const user = await databaseService.signIn(email, password);
+      
+      // Verify user type matches expected type
+      if (user.user?.user_type !== (type || 'customer')) {
+        throw new Error(`Please sign in with a ${type || 'customer'} account`);
+      }
+      
+      const currentUser = await databaseService.getCurrentUser();
+      if (!currentUser) throw new Error('Failed to get user profile');
+      
       if (user.type === 'customer') {
         router.replace('/(tabs)');
       } else {
         router.replace('/(tabs)/shop-dashboard');
       }
     } catch (error) {
-      Alert.alert('Error', 'Invalid email or password. Please try again.');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

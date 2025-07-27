@@ -11,14 +11,14 @@ import {
 import { Filter, MapPin, Search } from 'lucide-react-native';
 import { Place, Filter as FilterType } from '@/types';
 import { useColors } from '@/hooks/useColors';
-import { mockPlaces } from '@/constants/mockData';
+import { databaseService } from '@/utils/database';
 import PlaceCard from '@/components/PlaceCard';
 import FilterModal from '@/components/FilterModal';
 import { locationService } from '@/utils/location';
 
 export default function Discover() {
-  const [places, setPlaces] = useState<Place[]>(mockPlaces);
-  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>(mockPlaces);
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
   const colors = useColors();
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,6 +31,7 @@ export default function Discover() {
 
   useEffect(() => {
     getCurrentLocation();
+    loadPlaces();
   }, []);
 
   useEffect(() => {
@@ -45,6 +46,15 @@ export default function Discover() {
         longitude: location.coords.longitude,
       });
       updatePlacesWithDistance(location.coords.latitude, location.coords.longitude);
+    }
+  };
+
+  const loadPlaces = async () => {
+    try {
+      const allPlaces = await databaseService.getPlaces();
+      setPlaces(allPlaces);
+    } catch (error) {
+      console.error('Error loading places:', error);
     }
   };
 
@@ -76,6 +86,7 @@ export default function Discover() {
   const onRefresh = async () => {
     setRefreshing(true);
     await getCurrentLocation();
+    await loadPlaces();
     setRefreshing(false);
   };
 

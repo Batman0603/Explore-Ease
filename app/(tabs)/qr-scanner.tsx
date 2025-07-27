@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { QrCode, Camera, FlashlightOff as FlashOff, Slash as FlashOn, X, Store, MapPin, Image as ImageIcon } from 'lucide-react-native';
 import { useColors } from '@/hooks/useColors';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { User } from '@/types';
 
 export default function QRScanner() {
@@ -36,7 +36,7 @@ export default function QRScanner() {
   }, []);
 
   const checkUserAccess = async () => {
-    const currentUser = await authService.getCurrentUser();
+    const currentUser = await databaseService.getCurrentUser();
     if (!currentUser || currentUser.type !== 'shop_owner') {
       Alert.alert(
         'Access Denied',
@@ -69,20 +69,42 @@ export default function QRScanner() {
       return;
     }
 
-    // Simulate shop registration
-    Alert.alert(
-      'Success',
-      'Your shop has been registered successfully! It will appear on the map for customers to discover.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            setShowRegistrationModal(false);
-            setShopData({ name: '', category: '', description: '', address: '' });
+    // Register shop in database
+    registerShop();
+  };
+
+  const registerShop = async () => {
+    if (!user) return;
+
+    try {
+      await databaseService.createPlace({
+        name: shopData.name,
+        category: 'shop' as any,
+        description: shopData.description,
+        price: 0,
+        image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg',
+        location: { latitude: 37.7749, longitude: -122.4194 }, // Default SF coordinates
+        address: shopData.address,
+        isOpen: true,
+        openingHours: '9:00 AM - 6:00 PM',
+      });
+
+      Alert.alert(
+        'Success',
+        'Your shop has been registered successfully! It will appear on the map for customers to discover.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowRegistrationModal(false);
+              setShopData({ name: '', category: '', description: '', address: '' });
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to register shop. Please try again.');
+    }
   };
 
   if (!permission) {

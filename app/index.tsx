@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { authService } from '@/utils/auth';
+import { databaseService } from '@/utils/database';
 import { User } from '@/types';
 import SplashScreen from '@/components/SplashScreen';
 
@@ -15,7 +15,7 @@ export default function Index() {
 
   const checkAuthStatus = async () => {
     try {
-      const user: User | null = await authService.getCurrentUser();
+      const user: User | null = await databaseService.getCurrentUser();
       
       setTimeout(() => {
         setIsLoading(false);
